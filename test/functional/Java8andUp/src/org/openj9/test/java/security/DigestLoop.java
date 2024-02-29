@@ -80,6 +80,11 @@ public final class DigestLoop extends Thread {
             int a = r2.nextInt();
             switch_int = ((a >= 0) ? a : -a) % 6;
             try {
+                // This will force GC to occur every 10,000 iterations.
+                if (i % 10000 == 0) {
+                    System.gc();
+                    sleep(10000);
+                }
                 if (switch_int == 1) {
                     // md = MessageDigest.getInstance(alg, java_provider);
                 } else if (switch_int == 2) {
