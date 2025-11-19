@@ -256,15 +256,18 @@ public abstract class ClassLoader {
 		bootstrapClassLoader = sysTemp;
 		AbstractClassLoader.setBootstrapClassLoader(bootstrapClassLoader);
 		lazyClassLoaderInit = true;
-		applicationClassLoader = sun.misc.Launcher.getLauncher().getClassLoader();
 		/*[ENDIF] JAVA_SPEC_VERSION >= 11 */
-
+	
 		/* [PR 78889] The creation of this classLoader requires lazy initialization. The internal classLoader struct
 		 * is created in the initAnonClassLoader call. The "new InternalAnonymousClassLoader()" call must be
 		 * done exactly after lazyClassLoaderInit is set and before the "java.lang.ClassLoader.lazyInitialization"
 		 * is read in. This is the only way to guarantee that ClassLoader will be created with lazy initialization. */
 		internalAnonClassLoader = new InternalAnonymousClassLoader();
 		initAnonClassLoader(internalAnonClassLoader);
+	
+		/*[IF JAVA_SPEC_VERSION == 8]*/
+		applicationClassLoader = sun.misc.Launcher.getLauncher().getClassLoader();
+		/*[ENDIF] JAVA_SPEC_VERSION == 8 */
 
 		String lazyValue = System.internalGetProperties().getProperty("java.lang.ClassLoader.lazyInitialization"); //$NON-NLS-1$
 		if (null != lazyValue) {
