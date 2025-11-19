@@ -156,8 +156,7 @@ retry:
 	omrthread_monitor_enter(vm->classTableMutex);
 	/* Hidden class is never added into the hash table */
 	if ((NULL != utf8Name) && J9_ARE_NO_BITS_SET(*options, J9_FINDCLASS_FLAG_HIDDEN)) {
-		J9Class *persistedClazz = vmFuncs->hashClassTableAt(classLoader, utf8Name, utf8Length, J9_FINDCLASS_FLAG_DONT_SKIP_FROZEN_JCL_DEFINE_CLASS);
-		if (NULL != persistedClazz) {
+		if (NULL != vmFuncs->hashClassTableAt(classLoader, utf8Name, utf8Length, 0)) {
 			/* Bad, we have already defined this class - fail */
 			omrthread_monitor_exit(vm->classTableMutex);
 			if (J9_ARE_NO_BITS_SET(*options, J9_FINDCLASS_FLAG_NAME_IS_INVALID)) {
@@ -166,7 +165,8 @@ retry:
 				 */
 #if defined(J9VM_OPT_SNAPSHOTS)
 				if (IS_RESTORE_RUN(vm)) {
-					clazz = persistedClazz;
+					clazz = vmFuncs->hashClassTableAt(classLoader, utf8Name, utf8Length, 0);
+
 					if (!vmFuncs->loadWarmClassFromSnapshot(currentThread, classLoader, clazz)) {
 						clazz = NULL;
 						goto done;
@@ -281,11 +281,6 @@ done:
 		}
 	} else {
 		result = vmFuncs->j9jni_createLocalRef(env, J9VM_J9CLASS_TO_HEAPCLASS(clazz));
-#if defined(J9VM_OPT_SNAPSHOTS)
-		if (!IS_RESTORE_RUN(vm)) {
-			clazz->classFlags |= J9ClassIsJCLDefineClass;
-		}
-#endif /* defined(J9VM_OPT_SNAPSHOTS) */
 	}
 
 	vmFuncs->internalExitVMToJNI(currentThread);
